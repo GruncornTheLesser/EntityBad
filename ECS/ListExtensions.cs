@@ -32,6 +32,7 @@ namespace ECS
             return ~index;
         }
         
+        /*
         /// <summary>
         /// Binary search to find the first index which equals <paramref name="value"/>.
         /// </summary>
@@ -105,5 +106,7 @@ namespace ECS
             }
             return result;
         }
+    */
+    
     }
 }

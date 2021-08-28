@@ -69,17 +69,17 @@ namespace ECS
         internal static byte Count => _count;
         internal static Type GetType(byte ID) => _types[ID];
         internal static IComponent InitComponent(byte ID) => _initiators[ID].CreateComponent();
-        internal static Archetype.IPool InitPool(byte ID) => _initiators[ID].CreatePool();
+        internal static IPool InitPool(byte ID) => _initiators[ID].CreatePool();
         
         private interface IInitiator
         {
             IComponent CreateComponent();
-            Archetype.IPool CreatePool();
+            IPool CreatePool();
         }
         private class Initiator<TComponent> : IInitiator where TComponent : IComponent, new()
         {
             IComponent IInitiator.CreateComponent() => new TComponent();
-            Archetype.IPool IInitiator.CreatePool() => new Archetype.Pool<TComponent>();
+            IPool IInitiator.CreatePool() => new Pool<TComponent>();
         }
         private static class ComponentType<TComponent> where TComponent : IComponent, new()
         {

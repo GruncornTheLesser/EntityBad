@@ -25,7 +25,7 @@ namespace ECS
         /// </summary>
         public int Length { get; private set; }
         
-        private const int DEFAULT_ARRAY_SIZE = 128;
+        internal const int DEFAULT_ARRAY_SIZE = 128;
         private int _arraySize = DEFAULT_ARRAY_SIZE;                            // the max number of entities before pools require resizing
 
         static Archetype()
@@ -47,6 +47,26 @@ namespace ECS
             foreach (Behaviour B in Behaviour.FindApplicable(compSet))
                 B.archetypes.Add(this);
         }
+
+        #region GetPools
+        /// <summary>
+        /// gets the component pool.
+        /// </summary>
+        public Pool<TComponent> GetPool<TComponent>() where TComponent : IComponent, new()
+        {
+            return (Pool<TComponent>)components[ComponentManager.ID<TComponent>()];
+        }
+        /// <summary>
+        /// gets the entity pool.
+        /// </summary>
+        /// <returns></returns>
+        public Pool<Entity> GetEntityPool()
+        {
+            return (Pool<Entity>)entities;
+        }
+
+
+        #endregion
 
         #region Moving Entity
         /// <summary>

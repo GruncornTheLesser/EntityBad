@@ -78,7 +78,7 @@ namespace ECS
         /// </summary>
         public ref TComponent GetComponent<TComponent>() where TComponent : IComponent, new()
         {
-            return ref (archetype.components[ComponentManager.ID<TComponent>()] as Archetype.Pool<TComponent>)[poolIndex];
+            return ref (archetype.components[ComponentManager.ID<TComponent>()] as Pool<TComponent>)[poolIndex];
         }
     }
 }
