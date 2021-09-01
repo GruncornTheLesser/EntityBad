@@ -10,10 +10,9 @@ namespace ECS
     /// </summary>
     public partial class Archetype : IComparable<ComponentSet>                  // Archetype.All sorted by ComponentSet
     {
-        public readonly static Archetype Empty;                                 // the archetype for an entity with no components
-        private readonly static List<Archetype> All;                             // a list of all archetypes that have been created so far, sorted by "compSet"
-
+        internal readonly Context context;
         internal readonly ComponentSet compSet;                                 // a bit array represent which components this Archetype contains
+        
         internal readonly IPool entities = new Pool<Entity>();                  // the storage for entities     
         internal readonly IPool[] components = new IPool[byte.MaxValue + 1];    // the storage for components
 
@@ -28,23 +27,16 @@ namespace ECS
         internal const int DEFAULT_ARRAY_SIZE = 128;
         private int _arraySize = DEFAULT_ARRAY_SIZE;                            // the max number of entities before pools require resizing
 
-        static Archetype()
-        {
-            All = new List<Archetype>();
-            Empty = new Archetype(new ComponentSet(new byte[0]));
-            All.Add(Empty);
-        }
-
-        // constructor can be private because archetype its only called from Archetype.FindOrCreate() and static constructor
-        private Archetype(ComponentSet CompSet)
+        internal Archetype(Context Context, ComponentSet CompSet)
         {
             this.compSet = CompSet;
+            this.context = Context;
 
             foreach (byte CompID in compSet)
                 components[CompID] = ComponentManager.InitPool(CompID); // init component pools
             entities = new Pool<Entity>();                              // init entity pool
 
-            foreach (Behaviour B in Behaviour.FindApplicable(compSet))
+            foreach (Behaviour B in context.FindApplicableBehaviour(compSet))
                 B.archetypes.Add(this);
         }
 
@@ -64,8 +56,6 @@ namespace ECS
         {
             return (Pool<Entity>)entities;
         }
-
-
         #endregion
 
         #region Moving Entity
@@ -175,31 +165,6 @@ namespace ECS
 
         #region Find Archetype
         /// <summary>
-        /// Searches All <see cref="Archetype"/>s for matching <paramref name="ComponentIDs"/>.
-        /// if none are found, creates a new <see cref="Archetype"/> matching the <paramref name="ComponentIDs"/>.
-        /// </summary>
-        public static Archetype FindOrCreate(ComponentSet compSet)
-        {
-            int index = All.BinarySearch(compSet);
-            if (index >= 0) return All[index];
-
-            Archetype newArchetype = new Archetype(compSet);
-            All.Insert(~index, newArchetype);
-
-            return newArchetype;
-        }
-
-        /// <summary>
-        /// Finds the Archetypes that fulfill the <paramref name="query"/>.
-        /// </summary>
-        public static IEnumerable<Archetype> FindApplicable(Query query)
-        {
-            for (int i = 0; i < All.Count; i++)
-                if (query.Check(All[i].compSet))
-                    yield return All[i];
-        }
-        
-        /// <summary>
         /// Finds the <see cref="Archetype"/> for this <see cref="Archetype"/>'s <see cref="ComponentSet"/>
         /// minus the <paramref name="compID"/>.
         /// </summary>
@@ -209,7 +174,7 @@ namespace ECS
             
             // look up
             if (_next[compID] == null)
-                _next[compID] = FindOrCreate(newCompSet);
+                _next[compID] = context.FindOrCreateArchetype(newCompSet);
             return _next[compID];
         }
 
@@ -223,7 +188,7 @@ namespace ECS
            
             // look up
             if (_prev[compID] == null)
-                _prev[compID] = FindOrCreate(newCompSet);
+                _prev[compID] = context.FindOrCreateArchetype(newCompSet);
             return _prev[compID];
         }
         #endregion

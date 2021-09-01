@@ -123,6 +123,7 @@
     <Compile Include="Archetype.cs" />
     <Compile Include="Behaviour.cs" />
     <Compile Include="ComponentSet.cs" />
+    <Compile Include="Context.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="IComponent.cs" />

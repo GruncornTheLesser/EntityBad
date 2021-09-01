@@ -16,26 +16,27 @@ namespace ECS
         /// initiates <see cref="Entity"/> with <paramref name="Components"/>.
         /// Use <see cref="ComponentManager.ID{T1, T2, T3, T4}"/>.
         /// </summary>
-        public Entity(byte[] Components)
+        public Entity(Context context, params byte[] Components)
         {
             // if Archetype null adds to empty archetype in context
-            this.archetype = Archetype.FindOrCreate(new ComponentSet(Components));
+            this.archetype = context.FindOrCreateArchetype(new ComponentSet(Components));
             this.archetype.InitEntity(this, out poolIndex); // initiates entity into archetype
         }
+        
         /// <summary>
         /// initiates empty <see cref="Entity"/>.
         /// </summary>
-        public Entity()
+        public Entity(Context context)
         {
-            this.archetype = Archetype.Empty;
+            this.archetype = context.EmptyArchetype;
             this.archetype.InitEntity(this, out poolIndex); // initiates entity into archetype
         }
-       
+
         /// <summary>
         /// Adds a new <typeparamref name="TComponent"/> to <see cref="Entity"/>.
         /// Calls <see cref="Archetype.MoveEntity(Entity, Archetype)"/> and sets <typeparamref name="TComponent"/>.
         /// </summary>
-        public void AddComponent<TComponent>(TComponent Component = default) where TComponent : IComponent, new()
+        protected void AddComponent<TComponent>(TComponent Component = default) where TComponent : IComponent, new()
         {
             byte compID = ComponentManager.ID<TComponent>();
             archetype.MoveEntity(this, archetype.FindNext(compID));
@@ -47,7 +48,7 @@ namespace ECS
         /// Calls <see cref="Archetype.MoveEntity(Entity, Archetype)"/> and gets <typeparamref name="TComponent"/>.
         /// </summary>
         /// <returns>Removed <typeparamref name="TComponent"/></returns>
-        public TComponent RemoveComponent<TComponent>() where TComponent : IComponent, new()
+        protected TComponent RemoveComponent<TComponent>() where TComponent : IComponent, new()
         {
             byte compID = ComponentManager.ID<TComponent>();
             TComponent Component = (TComponent)archetype.components[compID][poolIndex];
@@ -55,13 +56,14 @@ namespace ECS
             return Component;
         }
 
-
-
-        public void ApplyComponents(ComponentSet Set)
+        /// <summary>
+        /// sets <see cref="IComponent"/>s to new <see cref="ComponentSet"/>. <see cref="IComponent"/>s 
+        /// previously assigned, if still present, are copied over.
+        /// </summary>
+        protected void AssignComponents(ComponentSet Set)
         {
-            archetype.MoveEntity(this, Archetype.FindOrCreate(Set));
+            archetype.MoveEntity(this, archetype.context.FindOrCreateArchetype(Set));
         }
-
 
         /// <summary>
         /// returns true if <see cref="Entity"/> contains <typeparamref name="TComponent"/>.
