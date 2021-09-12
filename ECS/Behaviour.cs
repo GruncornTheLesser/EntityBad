@@ -17,7 +17,7 @@ namespace ECS
             this.query = new Query(allFilter, anyFilter, noneFilter);
 
             context.AddBehaviour(this);
-            foreach (Archetype A in context.FindApplicableArchetypes(query))
+            foreach (Archetype A in context.FindApplicableArchetypes(this.query))
                 archetypes.Add(A);
         }
 

@@ -126,7 +126,6 @@
     <Compile Include="Context.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Exceptions.cs" />
-    <Compile Include="IComponent.cs" />
     <Compile Include="ListExtensions.cs" />
     <Compile Include="Pool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

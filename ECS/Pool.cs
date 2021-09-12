@@ -33,10 +33,5 @@ namespace ECS
             }
             void IPool.Remove(int index) => _array[index] = default;
             void IPool.Resize(int newSize) => Array.Resize(ref _array, newSize);
-
-            public override string ToString()
-            {
-                return $"Pool<{typeof(T).Name}>[{_array.Length}]";
-            }
         }
 }

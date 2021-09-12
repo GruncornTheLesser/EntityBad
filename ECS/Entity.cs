@@ -7,19 +7,19 @@ namespace ECS
     /// <see cref="Entity"/> stores methods to access <see cref="IComponent"/>s but doesn't
     /// store the <see cref="IComponent"/> themselves
     /// </summary>
-    public class Entity : IPoolable
+    public partial class Entity : IPoolable
     {
         internal Archetype archetype;   // the archetype it belongs to
         internal int poolIndex;         // the index in the archetype of itself and all its components
         
         /// <summary>
         /// initiates <see cref="Entity"/> with <paramref name="Components"/>.
-        /// Use <see cref="ComponentManager.ID{T1, T2, T3, T4}"/>.
+        /// Use <see cref="ComponentManager.ComponentID{T1, T2, T3, T4}"/>.
         /// </summary>
         public Entity(Context context, params byte[] Components)
         {
             // if Archetype null adds to empty archetype in context
-            this.archetype = context.FindOrCreateArchetype(new ComponentSet(Components));
+            this.archetype = context.FindOrCreateArchetype(new CompSet(Components));
             this.archetype.InitEntity(this, out poolIndex); // initiates entity into archetype
         }
         
@@ -38,7 +38,7 @@ namespace ECS
         /// </summary>
         protected void AddComponent<TComponent>(TComponent Component = default) where TComponent : IComponent, new()
         {
-            byte compID = ComponentManager.ID<TComponent>();
+            byte compID = archetype.context.ComponentID<TComponent>();
             archetype.MoveEntity(this, archetype.FindNext(compID));
             archetype.components[compID][poolIndex] = Component;
         }
@@ -50,7 +50,7 @@ namespace ECS
         /// <returns>Removed <typeparamref name="TComponent"/></returns>
         protected TComponent RemoveComponent<TComponent>() where TComponent : IComponent, new()
         {
-            byte compID = ComponentManager.ID<TComponent>();
+            byte compID = archetype.context.ComponentID<TComponent>();
             TComponent Component = (TComponent)archetype.components[compID][poolIndex];
             archetype.MoveEntity(this, archetype.FindPrev(compID));
             return Component;
@@ -60,7 +60,7 @@ namespace ECS
         /// sets <see cref="IComponent"/>s to new <see cref="ComponentSet"/>. <see cref="IComponent"/>s 
         /// previously assigned, if still present, are copied over.
         /// </summary>
-        protected void AssignComponents(ComponentSet Set)
+        protected void AssignComponents(CompSet Set)
         {
             archetype.MoveEntity(this, archetype.context.FindOrCreateArchetype(Set));
         }
@@ -72,7 +72,7 @@ namespace ECS
         /// <returns></returns>
         public bool HasComponent<TComponent>() where TComponent : IComponent, new()
         {
-            return archetype.compSet.Contains(ComponentManager.ID<TComponent>());
+            return archetype.compSet.Contains(archetype.context.ComponentID<TComponent>());
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace ECS
         /// </summary>
         public ref TComponent GetComponent<TComponent>() where TComponent : IComponent, new()
         {
-            return ref (archetype.components[ComponentManager.ID<TComponent>()] as Pool<TComponent>)[poolIndex];
+            return ref (archetype.components[archetype.context.ComponentID<TComponent>()] as Pool<TComponent>)[poolIndex];
         }
     }
 }
